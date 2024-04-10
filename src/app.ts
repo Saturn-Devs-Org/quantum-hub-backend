@@ -12,6 +12,8 @@ app.get('/', (req: Request, res: Response) => {
 // Routes definition
 app.use('/user', UserRouter)
 
+
+
 const PORT = 3000
 
 app.listen(PORT, () =>
