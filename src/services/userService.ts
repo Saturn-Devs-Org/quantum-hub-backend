@@ -1,5 +1,9 @@
 import prismaService from './prismaService'
 import { User } from '../models/user'
+import { Prisma, PrismaClient } from '@prisma/client'
+import { ApiError } from '../utils/ApiError'
+
+const prisma = new PrismaClient()
 
 export const createUser = async (userData: User) => {
   try {
@@ -9,46 +13,120 @@ export const createUser = async (userData: User) => {
 
     return newUser
   } catch (error) {
-    throw new Error('Unable to create a new user')
+    console.log(error)
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+
+      if (error.code === 'P2002') {
+        throw new ApiError(
+          400,
+          'A user with the provided details already exists.'
+        )
+      }
+    }
+    if (error instanceof Prisma.PrismaClientValidationError) {
+      throw new ApiError(400, `The format of the data is invalid`)
+    }
+    throw error 
   }
 }
 
-export const getAllUsers = async () => {
+export const getAllAdmins = async () => {
   try {
-    const allUsers = await prismaService.user.findMany()
+    const allAdmins = await prismaService.user.findMany({
+      where: {
+        isAdmin: true
+      }
+    })
 
-    return allUsers
+    return allAdmins
   } catch (error) {
-    throw new Error('Unable to fetch users list')
+    throw error
+  }
+}
+
+export const getAllCustomers = async () => {
+  try {
+    const allCustomers = await prismaService.user.findMany({
+      where: {
+        isAdmin: false,
+      },
+    })
+
+    return allCustomers
+  } catch (error) {
+    throw error
   }
 }
 
 export const getUserByUsername = async (username: string) => {
   try {
-    const userByUsername = await prismaService.user.findFirst({
+    const userByUsername = await prismaService.user.findFirstOrThrow({
       where: {
         username: { equals: username },
       },
     })
 
+    console.log("user", userByUsername)
+
     return userByUsername
   } catch (error) {
-    throw new Error(`Unable to get user with the username ${username}`)
+    console.log(error)
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === 'P2025') {
+        throw new ApiError(
+          404,
+          `The user ${username} does not exist`
+        )
+      }
+    }
+    throw error 
+  }
+}
+
+export const getUserById = async (id: string) => {
+  try {
+    const userById = await prismaService.user.findFirstOrThrow({
+      where: {
+        id: { equals: id },
+      },
+    })
+
+    return userById
+  } catch (error) {
+    console.log(error)
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === 'P2025') {
+        throw new ApiError(404, `The user ${id} does not exist`)
+      }
+    }
+    throw error
   }
 }
 
 export const updateUser = async (id: string, userData: User) => {
   try {
-    const userUpdate = await prismaService.user.update({
+    const userUpdate = await prisma.user.update({
       where: {
         id: id,
       },
       data: { ...userData },
     })
-
+    
+    
     return userUpdate
   } catch (error) {
-    throw new Error(`Unable to update user with the id ${id} `)
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === 'P2023') {
+        throw new ApiError(404, `The format of the id ${id} is invalid`)
+      }
+      if (error.code === 'P2025') {
+        throw new ApiError(404, `The user ${id} does not exist`)
+      }
+    }
+    if (error instanceof Prisma.PrismaClientValidationError) {
+      throw new ApiError(400, `The format of the data is invalid`)
+    }
+    throw error 
   }
 }
 
@@ -56,12 +134,21 @@ export const deleteUser = async (id: string) => {
   try {
     const deleteUser = await prismaService.user.delete({
       where: {
-        username: id,
+        id: id,
       },
     })
 
     return deleteUser
   } catch (error) {
-    throw new Error(`Unable to delete user with the id ${id} `)
+    console.log(error)
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === 'P2023') {
+        throw new ApiError(404, `The format of the id ${id} is invalid`)
+      }
+      if (error.code === 'P2025') {
+        throw new ApiError(404, `The user ${id} does not exist`)
+      }
+    }
+    throw error 
   }
 }
