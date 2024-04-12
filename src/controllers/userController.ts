@@ -46,7 +46,7 @@ export const getUserByUsername = async (req: Request, res: Response) => {
 export const getUserById = async (req: Request, res: Response) => {
   try {
     const id = req.params.id
-    const userById = await UserService.getUserByUsername(id)
+    const userById = await UserService.getUserById(id)
 
     return res.json(userById)
   } catch (error) {
@@ -56,10 +56,8 @@ export const getUserById = async (req: Request, res: Response) => {
 
 export const updateUser = async (req: Request, res: Response) => {
   try {
-    console.log("entra")
     const username = req.params.id
     const userData = req.body as User
-    console.log('data', username, userData)
     const userUpdate = await UserService.updateUser(username, userData)
 
     return res.json(userUpdate)
