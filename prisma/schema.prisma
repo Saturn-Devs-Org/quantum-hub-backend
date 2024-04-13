@@ -6,12 +6,12 @@ generator client {
 }
 
 datasource db {
-  provider = "mongodb"
+  provider = "postgres"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id         String     @id @default(auto()) @map("_id") @db.ObjectId
+  id         String     @id @default(uuid())
   username   String     @unique
   email      String     @unique
   passwordHash String
@@ -25,12 +25,11 @@ model User {
 }
 
 model Product {
-  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  id            String      @id @default(uuid())
   name          String
   description   String
   price         Float
-  categories    Category[]  @relation(fields: [categoryIDs], references: [id])
-  categoryIDs   String[]    @db.ObjectId
+  categories    CategoryOnProduct[]
   stockQuantity Int
   reviews       Review[]
   createdAt     DateTime    @default(now())
@@ -38,21 +37,29 @@ model Product {
 }
 
 model Category {
-  id          String     @id @default(auto()) @map("_id") @db.ObjectId
+  id          String            @id @default(uuid())
   name        String
   description String?
-  products    Product[]  @relation(fields: [productIds], references: [id])
-  productIds  String[]   @db.ObjectId
+  products    CategoryOnProduct[]
+}
+
+model CategoryOnProduct {
+  productId   String
+  categoryId  String
+  product     Product   @relation(fields: [productId], references: [id])
+  category    Category  @relation(fields: [categoryId], references: [id])
+
+  @@id([productId, categoryId])
 }
 
 model Order {
-  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  id            String         @id @default(uuid())
   user          User           @relation(fields: [userId], references: [id])
-  userId        String         @db.ObjectId
+  userId        String         
   orderItems    OrderItem[]
   totalPrice    Float
   address       Address        @relation(fields: [addressId], references: [id])
-  addressId     String         @db.ObjectId
+  addressId     String         
   paymentDetail PaymentDetail?
   paymentProcessed Boolean     @default(false)
   paidAt        DateTime?
@@ -62,47 +69,47 @@ model Order {
 }
 
 model OrderItem {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  productId String   @db.ObjectId
+  id        String   @id @default(uuid())
+  productId String   
   quantity  Int
   price     Float
   order     Order    @relation(fields: [orderId], references: [id])
-  orderId   String   @db.ObjectId
+  orderId   String   
 }
 
 model Cart {
-  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  id        String     @id @default(uuid())
   user      User       @relation(fields: [userId], references: [id])
-  userId    String     @unique @db.ObjectId
+  userId    String     @unique 
   cartItems CartItem[]
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 }
 
 model CartItem {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  productId String   @db.ObjectId
+  id        String   @id @default(uuid())
+  productId String   
   quantity  Int
   cart      Cart     @relation(fields: [cartId], references: [id])
-  cartId    String   @db.ObjectId
+  cartId    String   
 }
 
 
 model Review {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  id        String   @id @default(uuid())
   product   Product  @relation(fields: [productId], references: [id])
-  productId String   @db.ObjectId
+  productId String   
   user      User     @relation(fields: [userId], references: [id])
-  userId    String   @db.ObjectId
+  userId    String   
   rating    Int
   comment   String?
   createdAt DateTime @default(now())
 }
 
 model Address {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  id           String   @id @default(uuid())
   user         User     @relation(fields: [userId], references: [id])
-  userId       String   @db.ObjectId
+  userId       String   
   addressLine1 String
   addressLine2 String?
   city         String
@@ -113,9 +120,9 @@ model Address {
 }
 
 model PaymentDetail {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  id            String   @id @default(uuid())  
   order         Order    @relation(fields: [orderId], references: [id])
-  orderId       String   @unique @db.ObjectId
+  orderId       String   @unique 
   amount        Float
   paymentMethod String
   paymentDate   DateTime
