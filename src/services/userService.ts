@@ -76,14 +76,14 @@ export const getUserById = async (id: string) => {
 
 export const updateUser = async (id: string, userData: User) => {
   try {
-    const userUpdate = await prismaService.user.update({
+    const userUpdated = await prismaService.user.update({
       where: {
         id: id,
       },
       data: { ...userData },
     })
 
-    return userUpdate
+    return userUpdated
   } catch (error) {
     handlePrismaError(error)
     throw error 

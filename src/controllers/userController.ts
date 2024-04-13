@@ -58,9 +58,9 @@ export const updateUser = async (req: Request, res: Response) => {
   try {
     const username = req.params.id
     const userData = req.body as User
-    const userUpdate = await UserService.updateUser(username, userData)
+    const userUpdated = await UserService.updateUser(username, userData)
 
-    return res.json(userUpdate)
+    return res.json(userUpdated)
   } catch (error) {
     return errorHandlerMiddleware(error as Error, req, res)
   }
