@@ -2,9 +2,11 @@ import prismaService, { handlePrismaError } from './prismaService'
 import { User } from '../models/user'
 import { Prisma } from '@prisma/client'
 import { ApiError } from '../utils/ApiError'
+import bcrypt from 'bcryptjs';
 
 export const createUser = async (userData: User) => {
   try {
+    userData.passwordHash = bcrypt.hashSync(userData.passwordHash, 8)
     const newUser = await prismaService.user.create({
       data: { ...userData },
     })

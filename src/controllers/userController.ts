@@ -1,14 +1,15 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { User } from '../models/user'
 import * as UserService from '../services/userService'
 import { errorHandlerMiddleware } from '../middlewares/errorHandlerMiddleware'
+
 
 export const createUser = async (req: Request, res: Response) => {
   try {
     const requestBody = req.body as User
     const newUser = await UserService.createUser(requestBody)
 
-    return res.sendStatus(201).json(newUser)
+    return res.json(newUser)
   } catch (error) {
     return errorHandlerMiddleware(error as Error, req, res)
   }
@@ -17,6 +18,7 @@ export const createUser = async (req: Request, res: Response) => {
 export const getAdminsUsers = async (req: Request, res: Response) => {
   try {
     const allAdmins = await UserService.getAllAdmins()
+
     return res.json(allAdmins)
   } catch (error) {
     return errorHandlerMiddleware(error as Error, req, res)
